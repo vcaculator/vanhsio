@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Máy Tính Khoa Học VANHSIO</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .calculator { background: #1e293b; border-radius: 20px; padding: 25px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); border: 1px solid #334155; }
+        .brand-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .brand-name { color: #38bdf8; font-weight: 800; font-size: 20px; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+        .brand-name::before { content: ''; display: inline-block; width: 10px; height: 10px; background: #38bdf8; border-radius: 50%; box-shadow: 0 0 10px #38bdf8; }
+        .solar-cell { background: #451a03; border: 1px solid #78350f; width: 70px; height: 25px; border-radius: 4px; position: relative; overflow: hidden; }
+        .solar-cell::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); }
+        .screen { background: #064e3b; border: 2px solid #047857; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); position: relative; min-height: 110px; display: flex; flex-direction: column; justify-content: space-between; }
+        .screen-mode { display: flex; justify-content: space-between; color: #a7f3d0; font-size: 11px; font-weight: bold; font-family: monospace; }
+        .screen-expr { color: #a7f3d0; font-family: monospace; font-size: 16px; word-break: break-all; min-height: 24px; text-align: left; }
+        .screen-result { color: #ffffff; font-family: monospace; font-size: 28px; text-align: right; font-weight: bold; word-break: break-all; }
+        .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        button { border: none; border-radius: 8px; padding: 12px 5px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.1s; color: #f8fafc; background: #334155; box-shadow: 0 4px #1e293b; }
+        button:active { transform: translateY(2px); box-shadow: 0 2px #1e293b; }
+        .btn-func { background: #475569; color: #e2e8f0; }
+        .btn-action { background: #ef4444; color: white; }
+        .btn-action:hover { background: #dc2626; }
+        .btn-opt { background: #f97316; color: white; }
+        .btn-opt:hover { background: #ea580c; }
+        .btn-num { background: #1e293b; border: 1px solid #475569; }
+        .btn-equals { background: #0284c7; color: white; grid-column: span 1; }
+        .btn-equals:hover { background: #0369a1; }
+        .mode-menu { display: none; background: #0f172a; color: #38bdf8; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 12px; margin-bottom: 10px; }
+        .mode-menu div { margin: 4px 0; }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    <div class="brand-header">
+        <div class="brand-name">VANHSIO</div>
+        <div class="solar-cell"></div>
+    </div>
+
+    <div class="screen">
+        <div class="screen-mode">
+            <span id="modeDisplay">COMP</span>
+            <span id="angleDisplay">DEG</span>
+        </div>
+        <div class="screen-expr" id="exprDisplay"></div>
+        <div class="screen-result" id="resDisplay">0</div>
+    </div>
+
+    <div class="mode-menu" id="modeMenu">
+        <div>1: COMP (Tính cơ bản)</div>
+        <div>2: EQN (Giải PT/Hệ PT)</div>
+        <div>3: DEG/RAD (Đổi đơn vị góc)</div>
+    </div>
+
+    <div class="keypad">
+        <button class="btn-func" onclick="toggleAngle()">DEG/RAD</button>
+        <button class="btn-opt" onclick="toggleMenu()">MENU</button>
+        <button class="btn-action" style="grid-column: span 3;" onclick="clearAll()">AC</button>
+
+        <button class="btn-func" onclick="appendFunc('sin(')">sin</button>
+        <button class="btn-func" onclick="appendFunc('cos(')">cos</button>
+        <button class="btn-func" onclick="appendFunc('tan(')">tan</button>
+        <button class="btn-func" onclick="appendFunc('log(')">log</button>
+        <button class="btn-func" onclick="appendFunc('ln(')">ln</button>
+
+        <button class="btn-func" onclick="appendFunc('sqrt(')">√x</button>
+        <button class="btn-func" onclick="appendOp('^')">x^y</button>
+        <button class="btn-func" onclick="appendOp('^2')">x²</button>
+        <button class="btn-func" onclick="appendFunc('fact(')">n!</button>
+        <button class="btn-func" onclick="appendOp('%')">%</button>
+
+        <button class="btn-func" onclick="appendChar('(')">(</button>
+        <button class="btn-func" onclick="appendChar(')')">)</button>
+        <button class="btn-func" onclick="appendChar('π')">π</button>
+        <button class="btn-func" onclick="appendChar('e')">e</button>
+        <button class="btn-opt" onclick="deleteChar()">DEL</button>
+
+        <button class="btn-num" onclick="appendChar('7')">7</button>
+        <button class="btn-num" onclick="appendChar('8')">8</button>
+        <button class="btn-num" onclick="appendChar('9')">9</button>
+        <button class="btn-func" onclick="appendOp('/')">÷</button>
+        <button class="btn-func" onclick="useAns()">Ans</button>
+
+        <button class="btn-num" onclick="appendChar('4')">4</button>
+        <button class="btn-num" onclick="appendChar('5')">5</button>
+        <button class="btn-num" onclick="appendChar('6')">6</button>
+        <button class="btn-func" onclick="appendOp('*')">×</button>
+        <button class="btn-func" onclick="appendChar('i')">i</button>
+
+        <button class="btn-num" onclick="appendChar('1')">1</button>
+        <button class="btn-num" onclick="appendChar('2')">2</button>
+        <button class="btn-num" onclick="appendChar('3')">3</button>
+        <button class="btn-func" onclick="appendOp('-')">-</button>
+        <button class="btn-equals" style="grid-row: span 2;" onclick="calculate()">=</button>
+
+        <button class="btn-num" onclick="appendChar('0')">0</button>
+        <button class="btn-num" onclick="appendChar('.')">.</button>
+        <button class="btn-func" onclick="appendOp('*10^')">×10ⁿ</button>
+        <button class="btn-func" onclick="appendOp('+')">+</button>
+    </div>
+</div>
+
+<script>
+    let expr = '';
+    let lastAns = '0';
+    let isRad = false;
+
+    function updateScreen() {
+        document.getElementById('exprDisplay').innerText = expr;
+    }
+
+    function appendChar(c) { expr += c; updateScreen(); }
+    function appendFunc(f) { expr += f; updateScreen(); }
+    function appendOp(op) { expr += op; updateScreen(); }
+
+    function clearAll() {
+        expr = '';
+        document.getElementById('resDisplay').innerText = '0';
+        updateScreen();
+    }
+
+    function deleteChar() {
+        expr = expr.slice(0, -1);
+        updateScreen();
+    }
+
+    function toggleAngle() {
+        isRad = !isRad;
+        document.getElementById('angleDisplay').innerText = isRad ? 'RAD' : 'DEG';
+    }
+
+    function toggleMenu() {
+        let m = document.getElementById('modeMenu');
+        m.style.display = m.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function useAns() { expr += lastAns; updateScreen(); }
+
+    function calculate() {
+        try {
+            let parsed = expr
+                .replace(/π/g, 'Math.PI')
+                .replace(/e/g, 'Math.E')
+                .replace(/√\(/g, 'Math.sqrt(')
+                .replace(/log\(/g, 'Math.log10(')
+                .replace(/ln\(/g, 'Math.log(')
+                .replace(/\^2/g, '**2')
+                .replace(/\^/g, '**');
+
+            if (!isRad) {
+                parsed = parsed
+                    .replace(/sin\((.*?)\)/g, 'Math.sin(($1)*Math.PI/180)')
+                    .replace(/cos\((.*?)\)/g, 'Math.cos(($1)*Math.PI/180)')
+                    .replace(/tan\((.*?)\)/g, 'Math.tan(($1)*Math.PI/180)');
+            } else {
+                parsed = parsed
+                    .replace(/sin\(/g, 'Math.sin(')
+                    .replace(/cos\(/g, 'Math.cos(')
+                    .replace(/tan\(/g, 'Math.tan(');
+            }
+
+            let result = eval(parsed);
+            if (result !== undefined) {
+                lastAns = result.toString();
+                document.getElementById('resDisplay').innerText = result;
+            }
+        } catch (e) {
+            document.getElementById('resDisplay').innerText = 'Syntax ERROR';
+        }
+    }
+</script>
+
+</body>
+</html>
